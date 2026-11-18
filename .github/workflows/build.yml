@@ -1,0 +1,63 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  cpu-build:
+    name: CPU build + self-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake ninja-build \
+            qt6-base-dev qt6-image-formats-plugins ffmpeg
+
+      - name: Configure (CPU only)
+        run: >
+          cmake -S . -B build -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DENABLE_CUDA=OFF
+
+      - name: Build
+        run: cmake --build build --parallel "$(nproc)"
+
+      - name: Run self-test
+        run: ./build/cuda-media-upscaler --self-test
+
+      - name: GUI startup smoke test (offscreen)
+        run: |
+          QT_QPA_PLATFORM=offscreen timeout 5 ./build/cuda-media-upscaler \
+            || test $? -eq 124
+
+  cuda-compile:
+    name: CUDA compile (no GPU needed)
+    runs-on: ubuntu-latest
+    container: nvidia/cuda:12.6.3-devel-ubuntu24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            cmake ninja-build g++ qt6-base-dev
+
+      - name: Configure (CUDA enabled)
+        run: >
+          cmake -S . -B build -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DENABLE_CUDA=ON
+
+      - name: Compile
+        run: cmake --build build --parallel "$(nproc)"
+
+      - name: Report binary
+        run: file build/cuda-media-upscaler && du -h build/cuda-media-upscaler

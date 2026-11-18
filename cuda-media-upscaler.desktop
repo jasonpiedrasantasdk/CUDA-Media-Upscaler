@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=CUDA Media Upscaler
+GenericName=Media Upscaler
+Comment=GPU-accelerated upscaling for images, videos, and GIFs
+Exec=cuda-media-upscaler %F
+Icon=applications-multimedia
+Terminal=false
+Categories=Graphics;Video;AudioVideo;
+Keywords=upscale;cuda;gpu;gif;video;image;
+StartupWMClass=cuda-media-upscaler
