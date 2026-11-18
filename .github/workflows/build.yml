@@ -48,7 +48,7 @@ jobs:
         run: |
           apt-get update
           DEBIAN_FRONTEND=noninteractive apt-get install -y \
-            cmake ninja-build g++ qt6-base-dev
+            cmake ninja-build g++ qt6-base-dev file
 
       - name: Configure (CUDA enabled)
         run: >
